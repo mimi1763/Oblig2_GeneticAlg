@@ -6,27 +6,27 @@ public interface Params {
 	
 	// Graph class:
 	
-	/* Number of cells in a graph. */
-	final static int GRAPH_SIZE = 100;
-	/* Minimum number of cell edges. */
-	final static int MIN_EDGES = 1;
-	/* Maximum number of cell edges. */
-	final static int MAX_EDGES = 2;
+	/* Number of nodes in a graph (n). */
+	final static int GRAPH_SIZE = 8;
+	/* Use complete graph = n(n-1)/2 edges. */
+	final static boolean COMPLETE_GRAPH = false;
 	
 	// DrawGraph Class:
 	
+	/* Draw the graph, i.e. use graphics. */
+	final static boolean DRAW_GRAPH = true;
 	/* Show nodes. */
-	final static boolean SHOW_NODES = true;
+	final static boolean SHOW_NODES = true & DRAW_GRAPH;
 	/* Show edges. */
-	final static boolean SHOW_EDGES = true;
+	final static boolean SHOW_EDGES = true & DRAW_GRAPH;
+	/* Cell size diameter in pixels. */
+	final static int CELL_SIZE = 20;
 	/* Show number of neighbours. */
-	final static boolean SHOW_NEIGHBOURS = true;
+	final static boolean SHOW_NEIGHBOURS = false & DRAW_GRAPH;
 	/* Show number of similar neighbours. */
-	final static boolean SHOW_SIMILAR = false;
+	final static boolean SHOW_SIMILAR = false & DRAW_GRAPH;
 	/* Radius fuzziness of cell drawing. */
-	final static double RAD_FUZZINESS = 0.00;
-	/* Cell size diameter. */
-	final static int CELL_SIZE = 30;
+	final static double RAD_FUZZINESS = 1.00;
 	
 	/* Time in seconds to wait before algorithm begins. */
 	final static int WAIT_TIME = 2;
@@ -69,9 +69,9 @@ public interface Params {
 	/* Percent chance of entering cross-over stage. */
 	static final float CROSSOVER_RATIO = 0.85f;
 	/* Percent chance of entering mutation stage. */
-	static final float MUTATION_RATIO = 0.05f;
+	static final float MUTATION_RATIO = 0.1f;
 	/* Max percentage of POLYGON_COUNT mutations per child. */
 	static final float MAX_MUTATIONS = 1 / (float)GRAPH_SIZE;
 	/* Population size of chromosomes. */
-	static final int POPULATION_SIZE = 20; // must be even number
+	static final int POPULATION_SIZE = 40; // must be even number
 }

@@ -25,14 +25,14 @@ public class DrawGraph extends JPanel {
 	/* Edge arrow-line degree from main line. */
 	final static double PHI = UNCI_PI;
 	private final int PAD = 20;
+	private final int logN;
 	
 	private int cellCount;
     private Cell[] cells;
     private int w, h;
     private Point centre;
     private Graph graph;
-	private int generation = 0;
-	private int stagnation = 0;
+	private int generation = 0, stagnation = 0;
     
     public DrawGraph(Graph graph, int w, int h) {
     	this.w = w;
@@ -40,6 +40,7 @@ public class DrawGraph extends JPanel {
     	centre = new Point(w >> 1, h >> 1);
     	centre.translate(-PAD, -PAD);
     	this.graph = graph;
+    	logN = (int)(Math.log10(graph.getSize()) / Math.log10(2));
     	cellCount = graph.getSize();
     	cells = generateCells();
     	setSize(w, h);
@@ -80,9 +81,10 @@ public class DrawGraph extends JPanel {
             /* Draw fitness, generations and stagnations text. */
             g2.setPaint(Color.LIGHT_GRAY);
             g2.drawString("Best fitness: " + graph.getFitness() + 
-            		"            Generation #: " + generation + 
-            		"            Stagnations: " + stagnation + "  of  " + 
-            		Params.NUMBER_OF_GENERATIONS, 10, 10);
+            		"          Generation #: " + generation + 
+            		"          Stagnations: " + stagnation + "  of  " + 
+            		Params.NUMBER_OF_GENERATIONS +
+            		"          Total # of edges: " + graph.getEdgeSize(), 10, 10);
         }
         
         /* Draw edges. */
@@ -95,7 +97,6 @@ public class DrawGraph extends JPanel {
 	        	start.translate(Params.CELL_SIZE >> 1, Params.CELL_SIZE >> 1);
 	        	end.translate(Params.CELL_SIZE >> 1, Params.CELL_SIZE >> 1);
 	        	g2.draw(new Line2D.Double(start, end));
-//	        	drawArrowHead(g2, end, start, Color.GRAY);
 	        }
         }
     }    
@@ -146,6 +147,13 @@ public class DrawGraph extends JPanel {
     	
     	public void generateColour() {
             colour = graph.getNode(cellId).getColour();
+    	}
+    	
+    	public void createCoords() {
+    		double radius = ((centre.x - PAD) * (((int)(cellId / logN)) / (logN * 2.0)));
+    		double theta = (DOUBLE_PI / logN) * (cellId % logN) + (QUARTER_PI * (cellId / logN));
+    		x = centre.x + (int)(radius * Math.cos(theta));
+    		y = centre.y - (int)(radius * Math.sin(theta));
     	}
     	
     	public double generateCoords(double prevTheta) {

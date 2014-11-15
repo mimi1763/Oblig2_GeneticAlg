@@ -128,8 +128,9 @@ public class Graph implements Comparable<Graph> {
 	public void recalculateFitness() {
 		int totalFitness = 0;
 		for (int y = 0; y < (nodes.length-1); y++)
-			for (int x = y+1; x < (nodes.length); x++)
-				totalFitness += (adjMatrix[y][x]) ? 1 : 0;
+			for (int x = y+1; x < nodes.length; x++)
+				if(adjMatrix[y][x] && nodes[x].equals(nodes[y]))
+					totalFitness++;
 		this.fitness = totalFitness;
 	}	
 
@@ -146,6 +147,27 @@ public class Graph implements Comparable<Graph> {
 			case 2:	return "  cR";
 		}
 		return " ";
+	}
+	
+	public void printMatrix() {
+		String line = "\n  ";
+		for (int x = 0; x < nodes.length; x++)
+			line += x + " ";
+		System.out.println(line);
+		line = " ";
+		for (int x = 0; x < nodes.length; x++)
+			line += "--";
+		System.out.println(line);
+		for (int y = 0; y < nodes.length; y++) {
+			line = y + "|";
+			for (int x = 0; x < nodes.length; x++)
+				if(adjMatrix[y][x])
+					line += "1 ";
+				else
+					line += "0 ";
+			System.out.println(line);
+		}
+		System.out.println();
 	}
 	
 	@Override

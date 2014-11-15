@@ -17,8 +17,7 @@ public class RandomAlgorithm extends Algorithm<Graph> {
 	 * Random construction algorithm. Generates a Graph
 	 * of maxIterations number of nodes with random
 	 * number of edges between MIN_EDGES and MAX_EDGES 
-	 * between each node.
-	 * 
+	 * between each node. 
 	 * @param Graph
 	 * @return new Graph
 	 */
@@ -44,23 +43,20 @@ public class RandomAlgorithm extends Algorithm<Graph> {
 			do
 				edge = random.nextInt((getTrueCount(visited)+1));
 			while(!visited[edge] || edge == n);
-			System.out.println("I: edge " + edge);
 			visited[edge] = true;	
 			/* Create the new node n. */
 			graph.setNode(n, new Node());
 			/* Create edge from node n to node edge. */
 			graph.addEdge(n, edge);
-			System.out.println("I: adding edge (" + n + ", " + edge + ")");
 		}
 		
-		int emptySlots = random.nextInt(graph.getMaxEdges() - graph.getEdgeSize());
-		System.out.println("after I: emptyslots start at " + emptySlots);
+		int emptySlots = (COMPLETE_GRAPH) ? graph.getMaxEdges() - graph.getEdgeSize() : 
+				random.nextInt(graph.getMaxEdges() - graph.getEdgeSize());
 		
 		/* Phase II. Go through nodes until all edge slots are used. */
 		while (emptySlots > 0) {
 			for (int n = 0; n < graph.getSize(); n++) {
 				if(emptySlots > 0) {
-					System.out.println("II: node " + n +" emptyslots " + emptySlots);
 					/* Shuffle the nodes in the list, giving random order. */
 					shuffleList(shuffledNodes);
 					/* Add a random edge to node n if it has available slots. */
@@ -71,7 +67,6 @@ public class RandomAlgorithm extends Algorithm<Graph> {
 						else
 							continue; // Skip to next in shuffledNodes.
 					if(n2 > -1) {
-						System.out.println("II: adding edge (" + n + ", " + n2 + ")");
 						graph.addEdge(n, n2);
 						emptySlots--;
 					}
@@ -79,19 +74,6 @@ public class RandomAlgorithm extends Algorithm<Graph> {
 			}
 		}
 		return graph;
-	}
-	
-	/**
-	 * Random number of edges between MIN_EDGES and MAX_EDGES. 
-	 * @param random
-	 * @return edgeCount
-	 */
-	public int getRandomEdgeCount() {
-		Random random = new Random(System.nanoTime());
-		int edgeCount = MAX_EDGES;
-		if(MIN_EDGES < MAX_EDGES)
-			edgeCount = random.nextInt(MAX_EDGES - MIN_EDGES) + MIN_EDGES;
-		return edgeCount;
 	}
 	
 	public int getTrueCount(boolean[] array) {

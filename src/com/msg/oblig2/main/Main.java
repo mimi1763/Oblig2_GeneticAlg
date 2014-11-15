@@ -25,9 +25,8 @@ public class Main {
 		RandomAlgorithm randomAlg = new RandomAlgorithm();
 		randomAlg.setMaxIterations(size);
 		graph = randomAlg.process(null);
-				
-		for (int i = 0; i < graph.getEdgeSize(); i++)
-			System.out.println(graph.getEdge(i));
+		
+//		graph.printMatrix();
 				
 		/* Create population of random colour variants of the random graph. */
 		for (int i = 0; i < population.length; i++) {
@@ -145,6 +144,5 @@ public class Main {
 			return geneticAlg.getStagnation();
 		}
 	}
-
 }
 
