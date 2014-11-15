@@ -8,16 +8,10 @@ import com.msg.oblig2.interfaces.Params;
 public class Node {
 	
 	private Color colour;
-	private int edgeSlots;
-	
-	public Node(int edgeCount) {
-		this(null);
-		this.edgeSlots = edgeCount;
-		randomColour();
-	}
 	
 	public Node() {
-		this(1);
+		this(null);
+		randomColour();
 	}
 	
 	public Node(Color colour) {
@@ -30,14 +24,6 @@ public class Node {
 
 	public void setColour(Color colour) {
 		this.colour = colour;
-	}
-	
-	public int getEdgeSlots() {
-		return edgeSlots;
-	}
-	
-	public void decEdgeSlots() {
-		edgeSlots = Math.max(--edgeSlots, 0);
 	}
 
 	public void randomColour() {

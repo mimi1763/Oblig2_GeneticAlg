@@ -26,8 +26,8 @@ public class Main {
 		randomAlg.setMaxIterations(size);
 		graph = randomAlg.process(null);
 				
-		for (int i = 0; i < graph.getEdges().length; i++)
-			System.out.println(graph.getEdges()[i]);
+		for (int i = 0; i < graph.getEdgeSize(); i++)
+			System.out.println(graph.getEdge(i));
 				
 		/* Create population of random colour variants of the random graph. */
 		for (int i = 0; i < population.length; i++) {

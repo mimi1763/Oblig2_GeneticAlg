@@ -7,11 +7,11 @@ public interface Params {
 	// Graph class:
 	
 	/* Number of cells in a graph. */
-	final static int GRAPH_SIZE = 5;
+	final static int GRAPH_SIZE = 100;
 	/* Minimum number of cell edges. */
-	final static int MIN_EDGES = GRAPH_SIZE-1;
+	final static int MIN_EDGES = 1;
 	/* Maximum number of cell edges. */
-	final static int MAX_EDGES = GRAPH_SIZE-1;
+	final static int MAX_EDGES = 2;
 	
 	// DrawGraph Class:
 	
@@ -26,12 +26,20 @@ public interface Params {
 	/* Radius fuzziness of cell drawing. */
 	final static double RAD_FUZZINESS = 0.00;
 	/* Cell size diameter. */
-	final static int CELL_SIZE = 15;
+	final static int CELL_SIZE = 30;
 	
 	/* Time in seconds to wait before algorithm begins. */
 	final static int WAIT_TIME = 2;
+	
+	/* Colours. */
+	final static Color BROWN_GREEN = new Color(171, 153, 29);
+	final static Color AQUA_GREEN = new Color(95, 158, 92);
+	final static Color OCHRE = new Color(204, 119, 34);
+	final static Color FALU_RED = new Color(128, 24, 24);
+	
 	/* Colours possible for a cell. */
-	final static Color[] COLOURS = {Color.WHITE, Color.BLACK, Color.RED};
+	final static Color[] COLOURS = {Color.WHITE, Color.BLACK, FALU_RED};
+	
 	/* Millisecond frequency for how often best image is 
 	 * updated from algorithm thread. */ 
 	static final int CHECK_FREQUENCY = 50;

@@ -11,7 +11,6 @@ import java.util.Random;
 
 import javax.swing.JPanel;
 
-import com.msg.oblig2.csp.Edge;
 import com.msg.oblig2.csp.Graph;
 import com.msg.oblig2.interfaces.Params;
  
@@ -26,7 +25,7 @@ public class DrawGraph extends JPanel {
 	/* Edge arrow-line degree from main line. */
 	final static double PHI = UNCI_PI;
 	private final int PAD = 20;
-    
+	
 	private int cellCount;
     private Cell[] cells;
     private int w, h;
@@ -68,16 +67,16 @@ public class DrawGraph extends JPanel {
 	            		Params.CELL_SIZE, Params.CELL_SIZE));
         	}
             /* Draw edge count text. */
-            if(Params.SHOW_NEIGHBOURS) {
-	            g2.setPaint(Color.LIGHT_GRAY);
-	            g2.drawString(String.valueOf(cells[i].edges.length), cells[i].x, cells[i].y);
-            }
-            /* Draw similar neighbour count text. */
-            if(Params.SHOW_SIMILAR) {
-	            g2.setPaint(Color.RED);
-	            g2.drawString(String.valueOf(graph.getSimilarCount(cells[i].cellId)), 
-	            		cells[i].x + Params.CELL_SIZE, cells[i].y + Params.CELL_SIZE);
-            }           
+//            if(Params.SHOW_NEIGHBOURS) {
+//	            g2.setPaint(Color.LIGHT_GRAY);
+//	            g2.drawString(String.valueOf(cells[i].edges.length), cells[i].x, cells[i].y);
+//            }
+//            /* Draw similar neighbour count text. */
+//            if(Params.SHOW_SIMILAR) {
+//	            g2.setPaint(Color.RED);
+//	            g2.drawString(String.valueOf(graph.getSimilarCount(cells[i].cellId)), 
+//	            		cells[i].x + Params.CELL_SIZE, cells[i].y + Params.CELL_SIZE);
+//            }           
             /* Draw fitness, generations and stagnations text. */
             g2.setPaint(Color.LIGHT_GRAY);
             g2.drawString("Best fitness: " + graph.getFitness() + 
@@ -88,36 +87,18 @@ public class DrawGraph extends JPanel {
         
         /* Draw edges. */
         if(Params.SHOW_EDGES) {
-	        g2.setPaint(Color.GRAY);
-	        for(int i = 0; i < cellCount; i++) {
-		        for (int e = 0; e < cells[i].edges.length; e++) {
-		        	Point start = new Point(cells[cells[i].edges[e].getNode1()].x, 
-		        			cells[cells[i].edges[e].getNode1()].y);
-		        	Point end = new Point(cells[cells[i].edges[e].getNode2()].x, 
-		        			cells[cells[i].edges[e].getNode2()].y);
-		        	/* Start and end edge lines from and to the centre of cells. */
-		        	start.translate(Params.CELL_SIZE >> 1, Params.CELL_SIZE >> 1);
-		        	end.translate(Params.CELL_SIZE >> 1, Params.CELL_SIZE >> 1);
-		        	g2.draw(new Line2D.Double(start, end));
-	//	        	drawArrowHead(g2, end, start, Color.GRAY);
-		        }
+	        g2.setPaint(Params.OCHRE);
+	        for (int e = 0; e < graph.getEdgeSize(); e++) {
+	        	Point start = new Point(cells[graph.getEdge(e)[0]].x, cells[graph.getEdge(e)[0]].y);
+	        	Point end = new Point(cells[graph.getEdge(e)[1]].x, cells[graph.getEdge(e)[1]].y);
+	        	/* Start and end edge lines from and to the centre of cells. */
+	        	start.translate(Params.CELL_SIZE >> 1, Params.CELL_SIZE >> 1);
+	        	end.translate(Params.CELL_SIZE >> 1, Params.CELL_SIZE >> 1);
+	        	g2.draw(new Line2D.Double(start, end));
+//	        	drawArrowHead(g2, end, start, Color.GRAY);
 	        }
         }
     }    
-
-//	private void drawArrowHead(Graphics2D g2, Point tip, Point tail, Color color) {  
-//	    g2.setPaint(color);
-//	    double dy = tip.y - tail.y;  
-//	    double dx = tip.x - tail.x;  
-//	    double theta = Math.atan2(dy, dx);  
-//	    double x, y, rho = theta + PHI;  
-//	    for(int j = 0; j < 2; j++) {  
-//	        x = tip.x - Params.CELL_SIZE * Math.cos(rho);  
-//	        y = tip.y - Params.CELL_SIZE * Math.sin(rho);  
-//	        g2.draw(new Line2D.Double(tip.x, tip.y, x, y));  
-//	        rho = theta - PHI;  
-//	    }  
-//	}
     
 	public void setGraph(Graph graph) {
 		this.graph = graph;
@@ -133,9 +114,7 @@ public class DrawGraph extends JPanel {
     
     public Cell[] generateCells() {
         Cell[] cells = new Cell[cellCount];
-//        cells[0] = new Cell(w, h, 0);
-//        cells[0].x = centre.x;
-//        cells[0].y = centre.y;
+        
         /* Coordinates. */
         double theta = 0.0;
     	for (int i = 0; i < cellCount; i++) {
@@ -156,7 +135,6 @@ public class DrawGraph extends JPanel {
     }
     
     class Cell {   	
-    	public Edge[] edges;
     	public int x, y, w, h, cellId;
     	public Color colour;
     	
@@ -164,7 +142,6 @@ public class DrawGraph extends JPanel {
     		this.w = w;
     		this.h = h;
     		this.cellId = cellId;
-    		edges = graph.getNodeEdges(cellId);
     	}
     	
     	public void generateColour() {

@@ -1,11 +1,8 @@
 package com.msg.oblig2.algorithm;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Random;
-import java.util.Stack;
 
 import com.msg.oblig2.csp.Graph;
 import com.msg.oblig2.csp.Node;
@@ -38,10 +35,8 @@ public class RandomAlgorithm extends Algorithm<Graph> {
 		boolean[] visited = new boolean[graph.getSize()];
 		
 		/* Create node 0 and set random available edge slots. */
-		graph.setNode(0, new Node(getRandomEdgeCount()));
+		graph.setNode(0, new Node());
 		visited[0] = true;
-		/* Add this node's available edge slots to total emptySlots. */
-		int emptySlots = graph.getNode(0).getEdgeSlots();
 		
 		/* Phase I. Start from node 1, not 0. */	
 		for (int n = 1; n < graph.getSize(); n++) {
@@ -52,36 +47,32 @@ public class RandomAlgorithm extends Algorithm<Graph> {
 			System.out.println("I: edge " + edge);
 			visited[edge] = true;	
 			/* Create the new node n. */
-			graph.setNode(n, new Node(getRandomEdgeCount()));
+			graph.setNode(n, new Node());
 			/* Create edge from node n to node edge. */
 			graph.addEdge(n, edge);
 			System.out.println("I: adding edge (" + n + ", " + edge + ")");
-			/* Decrement available edge slots on node n. */
-			graph.getNode(n).decEdgeSlots();
-			/* Add this node's available edge slots to total emptySlots. */
-			emptySlots += graph.getNode(n).getEdgeSlots();
 		}
-		System.out.println("start emptyslots " + emptySlots);
+		
+		int emptySlots = random.nextInt(graph.getMaxEdges() - graph.getEdgeSize());
+		System.out.println("after I: emptyslots start at " + emptySlots);
+		
 		/* Phase II. Go through nodes until all edge slots are used. */
 		while (emptySlots > 0) {
 			for (int n = 0; n < graph.getSize(); n++) {
-				if(emptySlots > 0 && graph.getNode(n).getEdgeSlots() > 0) {
-					System.out.println("node " + n +" emptyslots " + emptySlots);
+				if(emptySlots > 0) {
+					System.out.println("II: node " + n +" emptyslots " + emptySlots);
 					/* Shuffle the nodes in the list, giving random order. */
 					shuffleList(shuffledNodes);
 					/* Add a random edge to node n if it has available slots. */
-					int edge = -1;
+					int n2 = -1;
 					for (int e : shuffledNodes)
-						if(graph.getNode(e).getEdgeSlots() > 0 &&
-								e != n &&
-								!graph.getAdjacencyList(n).contains(e))
-							edge = e;
+						if(e != n && !graph.hasEdge(n, e))
+							n2 = e;
 						else
 							continue; // Skip to next in shuffledNodes.
-					if(edge > -1) {
-						System.out.println("adding edge (" + n + ", " + edge + ")");
-						graph.addEdge(n, edge);
-						graph.getNode(n).decEdgeSlots();
+					if(n2 > -1) {
+						System.out.println("II: adding edge (" + n + ", " + n2 + ")");
+						graph.addEdge(n, n2);
 						emptySlots--;
 					}
 				}
@@ -120,11 +111,5 @@ public class RandomAlgorithm extends Algorithm<Graph> {
 			list.set(index, list.get(i));
 			list.set(i, a);
 		}
-	}
-	
-	private int validateGraph(Graph graph) {
-		DFSAlgorithm dfsAlg = new DFSAlgorithm(graph.getSize());
-		dfsAlg.dfs(graph, 0);
-		return dfsAlg.getCount();
 	}
 }

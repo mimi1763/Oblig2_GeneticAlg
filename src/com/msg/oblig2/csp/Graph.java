@@ -1,6 +1,5 @@
 package com.msg.oblig2.csp;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 
 import com.msg.oblig2.interfaces.Params;
@@ -9,42 +8,32 @@ public class Graph implements Comparable<Graph> {
 	
 	private Node[] nodes;
 	private int fitness;
-	private ArrayList<Integer>[] adjacencyList;
-	private ArrayList<Edge> edges;
+	private boolean[][] adjMatrix;
 	private int numberOfEdges;
+	private final int MAX_EDGES;
 	
-	@SuppressWarnings("unchecked")
 	public Graph(int size) {
-		adjacencyList = (ArrayList<Integer>[])new ArrayList[size];
-		for (int i = 0; i < size; i++)
-			adjacencyList[i] = new ArrayList<Integer>();
-		edges = new ArrayList<Edge>();
-		numberOfEdges = 0;
+		MAX_EDGES = (size * (size - 1)) / 2; // max edges (complete graph) = n(n-1)/2
 		nodes = new Node[size];
+		adjMatrix = new boolean[size][size];
 		fitness = Integer.MAX_VALUE;
+		numberOfEdges = 0;
 	}
 	
 	/* Clone Constructor */
-	@SuppressWarnings("unchecked")
 	public Graph(Graph clone) {
+		this.MAX_EDGES = clone.MAX_EDGES;
 		this.nodes = new Node[clone.nodes.length];
 		System.arraycopy(clone.nodes, 0, this.nodes, 0, clone.nodes.length);
-		adjacencyList = (ArrayList<Integer>[])new ArrayList[clone.adjacencyList.length];
-		for (int i = 0; i < adjacencyList.length; i++) {
-			adjacencyList[i] = new ArrayList<Integer>();
-			for (int e : clone.adjacencyList[i])
-				adjacencyList[i].add(e);
-		}
-		edges = new ArrayList<Edge>();
-		for (Edge e : clone.edges)
-			edges.add(e);
+		adjMatrix = new boolean[clone.adjMatrix.length][clone.adjMatrix.length];
+		for (int i = 0; i < clone.adjMatrix.length; i++)
+			System.arraycopy(clone.adjMatrix[i], 0, this.adjMatrix[i], 0, clone.adjMatrix.length);
 		this.fitness = clone.fitness;
 		this.numberOfEdges = clone.numberOfEdges;
 	}
 	
 	/**
 	 * Retrieves node at given index.
-	 * 
 	 * @param index
 	 * @return node
 	 */
@@ -72,51 +61,36 @@ public class Graph implements Comparable<Graph> {
 	
 	public boolean addEdge(int node1, int node2) {
 		if(node1 != node2) {
-			edges.add(new Edge(node1, node2));
-			adjacencyList[node1].add(node2);
-			adjacencyList[node2].add(node1);
-//			adjacencyList[node1].add(numberOfEdges + 1);
-//			adjacencyList[node2].add(numberOfEdges + 1);			
+			adjMatrix[node1][node2] = true;
+			adjMatrix[node2][node1] = true;			
 			numberOfEdges++;
 			return true;
 		}
 		return false;
 	}
-	
-	public ArrayList<Edge> getEdges() {
-		return edges;
-	}
-	
-	public int[] getNodeEdges(int node) {
-		int[] edgeArray = new int[adjacencyList[node].size()];
-		for (int i = 0; i < edgeArray.length; i++)
-			edgeArray[i] = adjacencyList[node].get(i);
-		return edgeArray;
-	}
-	
-//	public Edge[] getNodeEdges(int node) {
-//		Edge[] edgeArray = new Edge[adjacencyList[node].size()];
-//		for (int i = 0; i < edgeArray.length; i++)
-//			edgeArray[i] = edges[adjacencyList[node].get(i)];
-//		return edgeArray;
-//	}
-	
-	public int getNodeEdge(int node, int index) {
-		int edge = -1;
-		if(adjacencyList[node].size() > index)
-			edge = adjacencyList[node].get(index);
+
+	public int[] getEdge(int index) {
+		int[] edge = null;
+		int count = 0;
+		top: for (int y = 0; y < (nodes.length-1); y++)
+			for (int x = y+1; x < (nodes.length); x++) {
+				if(count == index) {
+					edge = new int[2];
+					edge[0] = x;
+					edge[1] = y;
+					break top;
+				}
+				count++;
+			}
 		return edge;
 	}
 	
-//	public Edge getEdge(int node, int index) {
-//		Edge edge = null;
-//		if(adjacencyList[node].size() > index)
-//			edge = edges[adjacencyList[node].get(index)];
-//		return edge;
-//	}
+	public boolean hasEdge(int node1, int node2) {
+		return adjMatrix[node1][node2];
+	}
 
-	public ArrayList<Integer> getAdjacencyList(int node) {
-		return adjacencyList[node];
+	public boolean[][] getAdjMatrix() {
+		return adjMatrix;
 	}
 
 	public int getFitness() {
@@ -125,7 +99,6 @@ public class Graph implements Comparable<Graph> {
 	
 	/**
 	 * Returns number of nodes in the graph.
-	 * 
 	 * @return size
 	 */
 	public int getSize() {
@@ -142,41 +115,27 @@ public class Graph implements Comparable<Graph> {
 	}
 
 	/**
-	 * Recalculate Graph fitness.
+	 * Returns maximum number of edges, indicating a complete graph.
+	 * @return MAX_EDGES
 	 */
+	public int getMaxEdges() {
+		return MAX_EDGES;
+	}
+
+	/**
+	 * Recalculate Graph fitness.
+	 */	
 	public void recalculateFitness() {
 		int totalFitness = 0;
-		for (ArrayList<Integer> edgeList : adjacencyList)
-			if(edgeList != null)
-				for (int e : edgeList)
-				totalFitness += (e.isSimilar(this)) ? 1 : 0;
+		for (int y = 0; y < (nodes.length-1); y++)
+			for (int x = y+1; x < (nodes.length); x++)
+				totalFitness += (adjMatrix[y][x]) ? 1 : 0;
 		this.fitness = totalFitness;
-	}
-	
-//	public void recalculateFitness() {
-//		int totalFitness = 0;
-//		for (Edge e : edges)
-//			if(e != null)
-//				totalFitness += (e.isSimilar(this)) ? 1 : 0;
-//		this.fitness = totalFitness;
-//	}	
+	}	
 
 	public void shuffleColours() {
 		for (Node node : nodes)
 			node.randomColour();
-	}
-	
-	/**
-	 * Return number of neighbours with similar colour of given node.
-	 *
-	 * @param node
-	 * @return count
-	 */
-	public int getSimilarCount(int node) {
-		int count = 0;
-		for (int edgeId : adjacencyList[node])
-			count += (edges[edgeId].isSimilar(this)) ? 1 : 0;
-		return count;
 	}
 	
 	public static String getColourChar(Node node) {
