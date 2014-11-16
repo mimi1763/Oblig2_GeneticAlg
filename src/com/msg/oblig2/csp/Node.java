@@ -1,34 +1,33 @@
 package com.msg.oblig2.csp;
 
-import java.awt.Color;
 import java.util.Random;
 
 import com.msg.oblig2.interfaces.Params;
 
 public class Node {
 	
-	private Color colour;
+	private int colour;
 	
 	public Node() {
-		this(null);
+		this(0);
 		randomColour();
 	}
 	
-	public Node(Color colour) {
+	public Node(int colour) {
 		this.colour = colour;
 	}
 
-	public Color getColour() {
+	public int getColour() {
 		return colour;
 	}
 
-	public void setColour(Color colour) {
+	public void setColour(int colour) {
 		this.colour = colour;
 	}
 
 	public void randomColour() {
 		Random random = new Random(System.nanoTime());
-		this.colour = Params.COLOURS[random.nextInt(Params.COLOURS.length)];
+		this.colour = random.nextInt(Params.COLOURS.length);
 	}
 	
 	@Override
@@ -37,6 +36,6 @@ public class Node {
 	}
 	
 	public boolean equals(Node node) {
-		return (this.colour.equals(node.colour));
+		return (this.colour == node.colour);
 	}
 }

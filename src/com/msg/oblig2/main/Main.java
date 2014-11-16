@@ -32,7 +32,7 @@ public class Main {
 		for (int i = 0; i < population.length; i++) {
 			population[i] = new Graph(graph);
 			population[i].shuffleColours();
-			population[i].recalculateFitness();
+			population[i].calcFitness();
 		}
 		
 		Collections.sort(Arrays.asList(population));
@@ -46,7 +46,12 @@ public class Main {
 				
 		/* Display final constructed graph. */
 		JFrame frame = new JFrame();
-		DrawGraph drawGraph = new DrawGraph(finalGraph, 640, 640);
+		int height = 80;
+		if(Params.DRAW_GRAPH)
+			height = 640;
+		else if(Params.DRAW_MATRIX)
+			height = 100 + Params.GRAPH_SIZE * 24;
+		DrawGraph drawGraph = new DrawGraph(finalGraph, 640, height);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setAlwaysOnTop(true);
 		frame.getContentPane().add(drawGraph);
@@ -85,6 +90,7 @@ public class Main {
 			frame.getContentPane().add(drawGraph);
 			drawGraph.repaint();
 		}
+		frame.dispose();
 	}
 
 	public static void main(String[] args) {

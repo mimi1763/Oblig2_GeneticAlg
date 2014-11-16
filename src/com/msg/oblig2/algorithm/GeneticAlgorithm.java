@@ -1,17 +1,14 @@
 package com.msg.oblig2.algorithm;
 
-import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Random;
 
 import com.msg.oblig2.csp.Graph;
+import com.msg.oblig2.interfaces.Params;
 import com.msg.oblig2.tools.NanoTimer;
 
-/* TODO:
- * 
- */
 
 public class GeneticAlgorithm extends Algorithm<Graph[]> {
 	
@@ -30,8 +27,7 @@ public class GeneticAlgorithm extends Algorithm<Graph[]> {
 
 	/**
 	 * Genetic algorithm. Optimizes a given population array of Graphs
-	 * of size POPULATION_SIZE and returns the optimized array.
-	 * 
+	 * of size POPULATION_SIZE and returns the optimized array. 
 	 * @param Graph[]
 	 * @return new Graph[]
 	 */
@@ -40,7 +36,7 @@ public class GeneticAlgorithm extends Algorithm<Graph[]> {
 		/* Empty population list. */
 		population.clear();
 		/* Recalculate fitness of all PolygonImages in input population. */
-		inputPopulation = recalculatePopulationFitness(inputPopulation);
+		inputPopulation = calcPopulationFitness(inputPopulation);
 		/* Create Graph list from population array parameter. */
 		Collections.addAll(population, inputPopulation);		
 		boolean[] usedPopulation = new boolean[popSize << 1];
@@ -50,6 +46,7 @@ public class GeneticAlgorithm extends Algorithm<Graph[]> {
 		previousBestFitness = startFitness;
 		Random random = new Random(System.nanoTime());
 		NanoTimer nanoTimer = new NanoTimer();
+		NanoTimer totalTimer = new NanoTimer();
 		
 		/* Initialize number of generations. */
 		generation = 0;
@@ -70,7 +67,7 @@ public class GeneticAlgorithm extends Algorithm<Graph[]> {
 		/* 
 		 * - -----------~~~=====<< Main algorithm loop. >>=====~~~----------- - 
 		 */
-		
+		totalTimer.startTimer();
 		while (stagnation < NUMBER_OF_GENERATIONS && bestChromosome.getFitness() > 0) {
 
 			random = new Random(System.nanoTime());
@@ -142,14 +139,13 @@ public class GeneticAlgorithm extends Algorithm<Graph[]> {
 				if(random.nextDouble() < CROSSOVER_RATIO) {
 					int pos1 = random.nextInt(maxIterations-1);
 					int pos2 = Math.min((random.nextInt(Math.max(maxIterations>>1, 1)) + pos1), maxIterations);
-//					System.out.println("crossing from " + pos1 + " to " + pos2 + " = " + (pos2 - pos1));
 					for (int b = pos1; b < pos2; b++) {
-						Color temp = children[0].getNode(b).getColour();
+						int temp = children[0].getNode(b).getColour();
 						children[0].getNode(b).setColour(children[1].getNode(b).getColour());
 						children[1].getNode(b).setColour(temp);
 					}
-					children[0].recalculateFitness();
-					children[1].recalculateFitness();
+					children[0].calcFitness();
+					children[1].calcFitness();
 				}
 				
 				/* Mutate children if ratio permits it.
@@ -164,16 +160,14 @@ public class GeneticAlgorithm extends Algorithm<Graph[]> {
 							/* Change random node to random colour. */
 							children[c].getNode(pos).randomColour();
 						}
-						children[c].recalculateFitness();
+						children[c].calcFitness();
 					}				
 				}
 
 				/* Copy the children to bottom half of population array. */
 				for (byte c = 0; c < 2; c++)
-					population.add(new Graph(children[c]));
+					population.add(children[c]);
 			}
-			
-//			population = recalculatePopulationFitness(population);
 			
 			previousBestFitness = bestChromosome.getFitness();
 			
@@ -189,11 +183,7 @@ public class GeneticAlgorithm extends Algorithm<Graph[]> {
 				population.remove(p);
 			
 			nanoTimer.stopTimer();
-			
-			int diff = previousBestFitness - bestChromosome.getFitness();
-			if(diff > 0)
-				System.out.println("Fitness improvement: " + diff);
-			
+						
 			/* If current best fitness is not more than 0.1 percent better than previous best,
 			 * increment iterations.
 			 */
@@ -208,15 +198,17 @@ public class GeneticAlgorithm extends Algorithm<Graph[]> {
 				System.out.println("Stagnating: " + stagnation + 
 						". Removing worst half, replacing by injecting new blood.");
 				
-				/* Remove the worse half of population. */
+				/* Remove worse half of population. */
 				population = getTopHalfPopulation(population);
 
-				/* Replace removed worse half with new blood. */
+				/* Replace the worse half with new blood. */
+				Graph graph = new Graph(0);
 				int addNumber = POPULATION_SIZE - population.size();
-				Graph graph = new Graph(population.get(0));
 				for (int blood = 0; blood < addNumber; blood++) {
+					graph = new Graph(population.get(random.nextInt(population.size())));
 					graph.shuffleColours();
-					population.add(new Graph(graph));
+					graph.calcFitness();
+					population.add(graph);				
 				}
 			}
 			
@@ -224,12 +216,24 @@ public class GeneticAlgorithm extends Algorithm<Graph[]> {
 			if(PRINT_FREQUENCY > 0 && generation % PRINT_FREQUENCY == 0)
 				nanoTimer.printElapsedTime(" Gen #: " + generation + ". Stagnating: " + stagnation +
 						". Best fitness: " + bestChromosome.getFitness());
-		}
-
+		} // end main while-loop
+		
+		totalTimer.stopTimer();
+		
+		System.out.println("\nGenetic alg. done. bestChromosome fitness = " + 
+				bestChromosome.getFitness());
+		
+		totalTimer.printElapsedTime();
+		
+//		bestChromosome.printMatrix();
+//		bestChromosome.printEdges();
+		
+		/* Sort population by fitness one last time. */
+		Collections.sort(population);
+		/* Convert population list to array and return it. */
 		Graph[] array = new Graph[population.size()];
 		return (Graph[])population.toArray(array);
 	}
-
 	/* 
 	 * ------------------------<<<<< End main algorithm >>>>>------------------------- 
 	 */
@@ -243,21 +247,9 @@ public class GeneticAlgorithm extends Algorithm<Graph[]> {
 		hasChanged = true;
 	}
 	
-	public Graph[] getPopulation() {
-		Graph[] array = new Graph[population.size()];
-		return (Graph[])population.toArray(array);
-	}
-	
-	public void setPopulation(Graph[] population) {
-		if(!this.population.isEmpty())
-			this.population.clear();
-		Collections.addAll(this.population, population);
-	}
-	
 	public boolean hasChanged() {
 		boolean bool = hasChanged;
-		if(hasChanged)
-			hasChanged = false;
+		hasChanged = false;
 		return bool;
 	}
 	
@@ -270,6 +262,19 @@ public class GeneticAlgorithm extends Algorithm<Graph[]> {
 	}
 	
 	/**
+	 * Calculates the total fitness of all graphs in inputPopulation.
+	 * @param inputPopulation
+	 * @return population
+	 */
+	private Graph[] calcPopulationFitness(Graph[] inputPopulation) {
+		Graph[] newPop = new Graph[inputPopulation.length];
+		System.arraycopy(inputPopulation, 0, newPop, 0, inputPopulation.length);
+		for (Graph chrom : newPop)
+			chrom.calcFitness();
+		return newPop;
+	}
+	
+	/**
 	 * Returns the top half of the given list of Graphs.
 	 * The list returned thus has half the size of the parameter (input) list.
 	 * 
@@ -277,30 +282,9 @@ public class GeneticAlgorithm extends Algorithm<Graph[]> {
 	 * @return top half of population list
 	 */
 	public ArrayList<Graph> getTopHalfPopulation(ArrayList<Graph> population) {
-		int size = population.size();
 		ArrayList<Graph> list = new ArrayList<Graph>();
-		for (Graph graph : population)
-			list.add(new Graph(graph));
-		/* Remove the worse half of population. */
-		for (int p = size - 1; p > (size >> 1) - 1; p--)
-			list.remove(p);
-
+		for (int i = 0; i < population.size() / 2; i++)
+			list.add(new Graph(population.get(i)));
 		return list;
 	}
-
-	public static Graph[] recalculatePopulationFitness(Graph[] population) {
-		Graph[] newPop = new Graph[population.length];
-		System.arraycopy(population, 0, newPop, 0, population.length);
-		for (int i = 0; i < population.length; i++)
-			newPop[i].recalculateFitness();
-		return newPop;
-	}
-	
-	public static ArrayList<Graph> recalculatePopulationFitness(ArrayList<Graph> population) {
-		ArrayList<Graph> newPop = new ArrayList<Graph>(population);
-		for (Graph graph : newPop)
-			graph.recalculateFitness();
-		return newPop;
-	}
-
 }

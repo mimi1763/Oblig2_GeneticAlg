@@ -1,6 +1,7 @@
 package com.msg.oblig2.gui;
 
 import java.awt.Color;
+import java.awt.Font;
 //import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -24,7 +25,7 @@ public class DrawGraph extends JPanel {
 	final static double UNCI_PI = Math.PI / 12.0;
 	/* Edge arrow-line degree from main line. */
 	final static double PHI = UNCI_PI;
-	private final int PAD = 20;
+	private final int PAD = 40;
 	private final int logN;
 	
 	private int cellCount;
@@ -51,34 +52,50 @@ public class DrawGraph extends JPanel {
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
         Graphics2D g2 = (Graphics2D)g;
-        /* Background gradient. */
-//        double brightness = 0.3;
-//    	Color color1 = new Color((int)(32*brightness), (int)(231*brightness), (int)(210*brightness));
-//        Color color2 = new Color((int)(12*brightness), (int)(127*brightness), (int)(64*brightness));
-//        GradientPaint gp = new GradientPaint(0, 0, color1, 0, h, color2);
-//        g2.setPaint(gp);
+
         g2.setPaint(Color.DARK_GRAY);
         g2.fillRect(0, 0, w, h);
+        
+        if(Params.DRAW_MATRIX) {
+	        /* Matrix frame. */
+	        g2.setPaint(Color.WHITE);
+	        g2.drawLine(PAD, PAD, PAD + (graph.getSize() * (12 << 1)), PAD); // top
+	        g2.drawLine(PAD, PAD, PAD, PAD + (graph.getSize() * (12 << 1))); // left
+	        g2.drawLine(PAD + (graph.getSize() * (12 << 1)), PAD, 
+	        		PAD + (graph.getSize() * (12 << 1)), PAD + (graph.getSize() * (12 << 1))); // right
+	        g2.drawLine(PAD, PAD + (graph.getSize() * (12 << 1)), 
+	        		PAD + (graph.getSize() * (12 << 1)), PAD + (graph.getSize() * (12 << 1))); // bottom
+        }
 
         /* Draw cells. */
+        int node;
         for(int i = 0; i < cellCount; i++) {
+        	if(Params.DRAW_MATRIX) {
+	        	g2.setPaint(Color.WHITE);
+	        	g2.drawString(String.valueOf(i), (PAD + 12 + i * (12 << 1)), PAD); // hori nodes
+	        	g2.drawString(String.valueOf(i), PAD - 12, PAD + 12 + i * (12 << 1)); // vert nodes
+	        	
+	        	for(int x = 0; x < cellCount; x++) {
+	        		node = 0;
+	        		if(graph.isSimilar(i, x))
+	        			node = 1;
+	        		if(graph.hasEdge(i, x))
+	        			g2.drawString(String.valueOf(node), (PAD + 12 + x * (12 << 1)), PAD + 12 + i * (12 << 1));
+	        	}
+        	}       	
+        	
         	if(Params.SHOW_NODES) {
-	            g2.setPaint(cells[i].colour);
+	            g2.setPaint(Params.COLOURS[cells[i].colour]);
 	            g2.fill(new Ellipse2D.Double(cells[i].x, cells[i].y, 
 	            		Params.CELL_SIZE, Params.CELL_SIZE));
+	            
+	            g2.setPaint(Color.LIGHT_GRAY);
+	            g2.setFont(new Font("SansSerif", Font.ITALIC, 12));
+	            g2.drawString(String.valueOf("n#"+i), cells[i].x, cells[i].y);
         	}
-            /* Draw edge count text. */
-//            if(Params.SHOW_NEIGHBOURS) {
-//	            g2.setPaint(Color.LIGHT_GRAY);
-//	            g2.drawString(String.valueOf(cells[i].edges.length), cells[i].x, cells[i].y);
-//            }
-//            /* Draw similar neighbour count text. */
-//            if(Params.SHOW_SIMILAR) {
-//	            g2.setPaint(Color.RED);
-//	            g2.drawString(String.valueOf(graph.getSimilarCount(cells[i].cellId)), 
-//	            		cells[i].x + Params.CELL_SIZE, cells[i].y + Params.CELL_SIZE);
-//            }           
+          
             /* Draw fitness, generations and stagnations text. */
+            g2.setFont(new Font("SansSerif", Font.PLAIN, 12));
             g2.setPaint(Color.LIGHT_GRAY);
             g2.drawString("Best fitness: " + graph.getFitness() + 
             		"          Generation #: " + generation + 
@@ -89,16 +106,20 @@ public class DrawGraph extends JPanel {
         
         /* Draw edges. */
         if(Params.SHOW_EDGES) {
-	        g2.setPaint(Params.OCHRE);
 	        for (int e = 0; e < graph.getEdgeSize(); e++) {
+		        g2.setPaint(Params.OCHRE);
 	        	Point start = new Point(cells[graph.getEdge(e)[0]].x, cells[graph.getEdge(e)[0]].y);
 	        	Point end = new Point(cells[graph.getEdge(e)[1]].x, cells[graph.getEdge(e)[1]].y);
 	        	/* Start and end edge lines from and to the centre of cells. */
 	        	start.translate(Params.CELL_SIZE >> 1, Params.CELL_SIZE >> 1);
 	        	end.translate(Params.CELL_SIZE >> 1, Params.CELL_SIZE >> 1);
+	        	if(graph.isSimilar(e))
+	        		g2.setPaint(Params.FALU_RED);
 	        	g2.draw(new Line2D.Double(start, end));
 	        }
         }
+        
+ 
     }    
     
 	public void setGraph(Graph graph) {
@@ -120,7 +141,10 @@ public class DrawGraph extends JPanel {
         double theta = 0.0;
     	for (int i = 0; i < cellCount; i++) {
     		cells[i] = new Cell(w, h, i);
-    		theta = cells[i].generateCoords(theta);
+    		if(Params.GRAPH_DRAWING_RND)
+    			theta = cells[i].generateCoords(theta);
+    		else
+    			cells[i].createCoords();
     	}
 
     	/* Colours. */
@@ -137,7 +161,7 @@ public class DrawGraph extends JPanel {
     
     class Cell {   	
     	public int x, y, w, h, cellId;
-    	public Color colour;
+    	public int colour;
     	
     	public Cell(int w, int h, int cellId) {
     		this.w = w;
@@ -150,8 +174,8 @@ public class DrawGraph extends JPanel {
     	}
     	
     	public void createCoords() {
-    		double radius = ((centre.x - PAD) * (((int)(cellId / logN)) / (logN * 2.0)));
-    		double theta = (DOUBLE_PI / logN) * (cellId % logN) + (QUARTER_PI * (cellId / logN));
+    		double radius = ((centre.x - PAD) * (((cellId) / (double)(logN * logN + logN))));
+    		double theta = (DOUBLE_PI / logN) * ((cellId+1) % logN) + (HALF_PI * ((cellId+1) / (double)logN));
     		x = centre.x + (int)(radius * Math.cos(theta));
     		y = centre.y - (int)(radius * Math.sin(theta));
     	}

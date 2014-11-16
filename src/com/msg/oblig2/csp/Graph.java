@@ -7,29 +7,31 @@ import com.msg.oblig2.interfaces.Params;
 public class Graph implements Comparable<Graph> {
 	
 	private Node[] nodes;
-	private int fitness;
 	private boolean[][] adjMatrix;
 	private int numberOfEdges;
 	private final int MAX_EDGES;
+	private int fitness;
 	
 	public Graph(int size) {
 		MAX_EDGES = (size * (size - 1)) / 2; // max edges (complete graph) = n(n-1)/2
+		fitness = MAX_EDGES;
 		nodes = new Node[size];
 		adjMatrix = new boolean[size][size];
-		fitness = Integer.MAX_VALUE;
 		numberOfEdges = 0;
 	}
 	
-	/* Clone Constructor */
+	/* Clone Constructor using deep copy for objects (non-primitives). */
 	public Graph(Graph clone) {
 		this.MAX_EDGES = clone.MAX_EDGES;
 		this.nodes = new Node[clone.nodes.length];
-		System.arraycopy(clone.nodes, 0, this.nodes, 0, clone.nodes.length);
-		adjMatrix = new boolean[clone.adjMatrix.length][clone.adjMatrix.length];
+		for (int n = 0; n < clone.nodes.length; n++)
+			this.nodes[n] = new Node(clone.nodes[n].getColour());
+		this.adjMatrix = new boolean[clone.adjMatrix.length][clone.adjMatrix.length];
 		for (int i = 0; i < clone.adjMatrix.length; i++)
-			System.arraycopy(clone.adjMatrix[i], 0, this.adjMatrix[i], 0, clone.adjMatrix.length);
-		this.fitness = clone.fitness;
+			for (int j = 0; j < clone.adjMatrix[i].length; j++)
+				this.adjMatrix[i][j] = clone.adjMatrix[i][j];
 		this.numberOfEdges = clone.numberOfEdges;
+		this.fitness = clone.fitness;
 	}
 	
 	/**
@@ -70,19 +72,36 @@ public class Graph implements Comparable<Graph> {
 	}
 
 	public int[] getEdge(int index) {
-		int[] edge = null;
-		int count = 0;
-		top: for (int y = 0; y < (nodes.length-1); y++)
+		int[][] edges = new int[getEdgeSize()][2];
+		int e = 0;
+		for (int y = 0; y < (nodes.length-1); y++)
 			for (int x = y+1; x < (nodes.length); x++) {
-				if(count == index) {
-					edge = new int[2];
-					edge[0] = x;
-					edge[1] = y;
-					break top;
+				if(hasEdge(x, y)) {
+					edges[e][0] = x;
+					edges[e][1] = y;
+					e++;
 				}
-				count++;
 			}
-		return edge;
+		return edges[index];
+	}
+	
+	/**
+	 * Returns true if both nodes on each end of edge are similar.
+	 * Index indicates the edge number.
+	 * @param index
+	 * @return boolean
+	 */
+	public boolean isSimilar(int index) {
+		int[] edge = getEdge(index);
+		if(edge != null)
+			return (nodes[edge[0]].equals(nodes[edge[1]]));
+		return false;
+	}
+	
+	public boolean isSimilar(int node1, int node2) {
+		if(hasEdge(node1, node2))
+			return (nodes[node1].equals(nodes[node2]));
+		return false;
 	}
 	
 	public boolean hasEdge(int node1, int node2) {
@@ -91,10 +110,6 @@ public class Graph implements Comparable<Graph> {
 
 	public boolean[][] getAdjMatrix() {
 		return adjMatrix;
-	}
-
-	public int getFitness() {
-		return fitness;
 	}
 	
 	/**
@@ -107,7 +122,6 @@ public class Graph implements Comparable<Graph> {
 	
 	/**
 	 * Returns number of edges in the graph.
-	 * 
 	 * @return edgeSize
 	 */
 	public int getEdgeSize() {
@@ -121,14 +135,23 @@ public class Graph implements Comparable<Graph> {
 	public int getMaxEdges() {
 		return MAX_EDGES;
 	}
+	
+	/**
+	 * Returns the total fitness of the graph based on
+	 * the last run of calcFitness.
+	 * @return fitness
+	 */
+	public int getFitness() {
+		return this.fitness;
+	}
 
 	/**
-	 * Recalculate Graph fitness.
-	 */	
-	public void recalculateFitness() {
+	 * Calculates total fitness of the graph.
+	 */
+	public void calcFitness() {
 		int totalFitness = 0;
 		for (int y = 0; y < (nodes.length-1); y++)
-			for (int x = y+1; x < nodes.length; x++)
+			for (int x = (y+1); x < nodes.length; x++)
 				if(adjMatrix[y][x] && nodes[x].equals(nodes[y]))
 					totalFitness++;
 		this.fitness = totalFitness;
@@ -149,8 +172,14 @@ public class Graph implements Comparable<Graph> {
 		return " ";
 	}
 	
+	/**
+	 * Prints adjacency matrix. If similar = true, only edges are printed
+	 * with 1 indicating similar node colours on each side, otherwise 0.
+	 * @param similar
+	 */
 	public void printMatrix() {
 		String line = "\n  ";
+		/* Frame with node numbers. */
 		for (int x = 0; x < nodes.length; x++)
 			line += x + " ";
 		System.out.println(line);
@@ -158,22 +187,50 @@ public class Graph implements Comparable<Graph> {
 		for (int x = 0; x < nodes.length; x++)
 			line += "--";
 		System.out.println(line);
+		/* 1 indicates similar node colour on each side of edge, 
+		 * otherwise 0.
+		 */
+		String sign;
 		for (int y = 0; y < nodes.length; y++) {
 			line = y + "|";
-			for (int x = 0; x < nodes.length; x++)
-				if(adjMatrix[y][x])
-					line += "1 ";
-				else
-					line += "0 ";
+			for (int x = 0; x < nodes.length; x++) {
+				sign = "- ";
+				if(x != y && adjMatrix[y][x])
+					if(isSimilar(x, y)) 
+						sign = "1 ";
+					else
+						sign = "0 ";
+				line += sign;
+			}
 			System.out.println(line);
 		}
-		System.out.println();
+//		calcFitness();
+		System.out.println("Final fitness: " + fitness);
+	}
+	
+	/**
+	 * Prints the graph nodes and their edges with colours, including
+	 * whether the edges are in satisfactory state (both ends different colour).
+	 */
+	public void printEdges() {
+		for (int y = 0; y < (nodes.length-1); y++) {
+			System.out.println("Node " + y + " colour: " + nodes[y].getColour());
+			for (int x = (y+1); x < nodes.length; x++) {
+				if(adjMatrix[y][x]) {
+					System.out.print("has edge to Node " + x + " colour: " + nodes[x].getColour());
+					if(isSimilar(x, y))
+						System.out.println(" = unsatisfied!");
+					else
+						System.out.println(" = satisfied.");
+				}
+			}			
+		}
 	}
 	
 	@Override
 	public int compareTo(Graph g) {
-        if(this.fitness > g.getFitness()) return 1;
-        if(this.fitness < g.getFitness()) return -1;
+        if(this.getFitness() > g.getFitness()) return 1;
+        if(this.getFitness() < g.getFitness()) return -1;
         return 0;
 	}
 }

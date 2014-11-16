@@ -39,19 +39,28 @@ public class RandomAlgorithm extends Algorithm<Graph> {
 		
 		/* Phase I. Start from node 1, not 0. */	
 		for (int n = 1; n < graph.getSize(); n++) {
+			int node;
+			do
+				node = random.nextInt(graph.getSize());
+			while(visited[node]);
+			visited[node] = true;
 			int edge;
 			do
-				edge = random.nextInt((getTrueCount(visited)+1));
-			while(!visited[edge] || edge == n);
+				edge = random.nextInt(getTrueCount(visited));
+			while(!visited[edge] || edge == node);
 			visited[edge] = true;	
 			/* Create the new node n. */
-			graph.setNode(n, new Node());
+			graph.setNode(node, new Node());
 			/* Create edge from node n to node edge. */
-			graph.addEdge(n, edge);
+			graph.addEdge(node, edge);
 		}
 		
-		int emptySlots = (COMPLETE_GRAPH) ? graph.getMaxEdges() - graph.getEdgeSize() : 
+		int emptySlots = 0;
+		if(!USE_EDGE_RATIO)
+			emptySlots = (COMPLETE_GRAPH) ? graph.getMaxEdges() - graph.getEdgeSize() : 
 				random.nextInt(graph.getMaxEdges() - graph.getEdgeSize());
+		else
+			emptySlots = (int)Math.max((graph.getMaxEdges() * MAX_EDGES_RATIO) - graph.getEdgeSize(), 0);
 		
 		/* Phase II. Go through nodes until all edge slots are used. */
 		while (emptySlots > 0) {
