@@ -22,7 +22,7 @@ public class Graph implements Comparable<Graph> {
 	
 	/* Clone Constructor using deep copy for objects (non-primitives). */
 	public Graph(Graph clone) {
-		this.MAX_EDGES = clone.MAX_EDGES;
+		this.MAX_EDGES = (clone.nodes.length * (clone.nodes.length - 1)) / 2;
 		this.nodes = new Node[clone.nodes.length];
 		for (int n = 0; n < clone.nodes.length; n++)
 			this.nodes[n] = new Node(clone.nodes[n].getColour());
@@ -69,6 +69,10 @@ public class Graph implements Comparable<Graph> {
 			return true;
 		}
 		return false;
+	}
+	
+	public void setEdge(int x, int y, boolean state) {
+		adjMatrix[x][y] = state;
 	}
 
 	public int[] getEdge(int index) {
@@ -127,6 +131,10 @@ public class Graph implements Comparable<Graph> {
 	public int getEdgeSize() {
 		return numberOfEdges;
 	}
+	
+	public void setEdgeSize(int edgeSize) {
+		this.numberOfEdges = edgeSize;		
+	}
 
 	/**
 	 * Returns maximum number of edges, indicating a complete graph.
@@ -143,6 +151,10 @@ public class Graph implements Comparable<Graph> {
 	 */
 	public int getFitness() {
 		return this.fitness;
+	}
+	
+	public void setFitness(int fitness) {
+		this.fitness = fitness;
 	}
 
 	/**

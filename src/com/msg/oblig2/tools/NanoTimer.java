@@ -20,6 +20,11 @@ public class NanoTimer {
 		return elapsedNanoTime;
 	}
 	
+	public double getElapsedMins() {
+		return (double)Math.round(((System.nanoTime() - startNanoTime) / 
+				60000000000.0) * 1000) / 1000;
+	}
+	
 	public void printElapsedTime() {
 		System.out.println(this);
 	}
@@ -30,6 +35,7 @@ public class NanoTimer {
 	
 	@Override
 	public String toString() {
-		return "Elapsed time: " + elapsedNanoTime / 1000000000.0 + " seconds.";
+		return String.valueOf((double)Math.round((elapsedNanoTime / 
+				1000000000.0) * 1000) / 1000) + " seconds";
 	}
 }

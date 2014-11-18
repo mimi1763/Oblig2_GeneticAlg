@@ -61,8 +61,11 @@ public class GeneticAlgorithm extends Algorithm<Graph[]> {
 
 		int minFitnessDiff = (int)Math.ceil(startFitness * MIN_FITNESS_DIFF_RATIO);
 		
-		System.out.println("\nGenetic algorithm CSP. Population: " + popSize + ". Node count: " +
-				maxIterations + ". Minimum fitnessDiff: " + minFitnessDiff);
+		System.out.println("\nGenetic algorithm CSP. Population: " + popSize + 
+				". Nodes: " + maxIterations +
+				". Edges: " + bestChromosome.getEdgeSize() + 
+				" of max: " + bestChromosome.getMaxEdges() +
+				". Min. fitnessDiff: " + minFitnessDiff);
 		
 		/* 
 		 * - -----------~~~=====<< Main algorithm loop. >>=====~~~----------- - 
@@ -220,10 +223,12 @@ public class GeneticAlgorithm extends Algorithm<Graph[]> {
 		
 		totalTimer.stopTimer();
 		
-		System.out.println("\nGenetic alg. done. bestChromosome fitness = " + 
+		System.out.println("\nGenetic algorithm done. bestChromosome fitness = " + 
 				bestChromosome.getFitness());
+		System.out.println("\nGenerations: " + generation);
 		
 		totalTimer.printElapsedTime();
+		System.out.println("In minutes: " + totalTimer.getElapsedMins());
 		
 //		bestChromosome.printMatrix();
 //		bestChromosome.printEdges();

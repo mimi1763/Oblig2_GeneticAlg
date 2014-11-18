@@ -17,80 +17,105 @@ public class Main {
 	public Main() {
 		
 		Graph graph;
+		
 		/* Number of nodes in graph. */
 		int size = Params.GRAPH_SIZE;
-		
-		/* Create a random graph. */	
+			
+		/* Initialize new population. */
 		Graph[] population = new Graph[Params.POPULATION_SIZE];
-		RandomAlgorithm randomAlg = new RandomAlgorithm();
-		randomAlg.setMaxIterations(size);
-		graph = randomAlg.process(null);
 		
-//		graph.printMatrix();
-				
-		/* Create population of random colour variants of the random graph. */
-		for (int i = 0; i < population.length; i++) {
-			population[i] = new Graph(graph);
-			population[i].shuffleColours();
-			population[i].calcFitness();
+		/* Create a random graph. */
+		if(Params.LOAD_GRAPH) {
+			int edgeSize = (int)(Params.MAX_EDGES * Params.MAX_EDGES_RATIO);
+			graph = new Graph(FileHandler.loadGraph(size, edgeSize));
+		} else {
+			RandomAlgorithm randomAlg = new RandomAlgorithm();
+			randomAlg.setMaxIterations(size);
+			graph = randomAlg.process(null);
 		}
 		
-		Collections.sort(Arrays.asList(population));
+		if(Params.SAVE_GRAPH)
+			FileHandler.saveGraph(graph);
 		
-		Graph finalGraph = population[0];
-		
-		/* Create new thread for algorithm on complete graph. */
-		GenAlgThread genAlgThread = new GenAlgThread(graph, population);
-		Thread thread;
-		thread = new Thread(genAlgThread);
+		int cycles = Params.CYCLES;
+		int totalInitial = 0;
+		int totalFitness = 0;
+		for (int cycle = 0; cycle < cycles; cycle++) {
 				
-		/* Display final constructed graph. */
-		JFrame frame = new JFrame();
-		int height = 80;
-		if(Params.DRAW_GRAPH)
-			height = 640;
-		else if(Params.DRAW_MATRIX)
-			height = 100 + Params.GRAPH_SIZE * 24;
-		DrawGraph drawGraph = new DrawGraph(finalGraph, 640, height);
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.setAlwaysOnTop(true);
-		frame.getContentPane().add(drawGraph);
-		frame.setSize(drawGraph.getSize());
-		drawGraph.repaint();
-		frame.setVisible(true);
-		
-		/* Wait 2 seconds before starting algorithm. */
-		for (int i = 0; i < Params.WAIT_TIME; i++)
-			try {
-				frame.setTitle("Starting algorithm in " + (Params.WAIT_TIME-i) + " seconds...");
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
+			/* Create population of random colour variants of the random graph. */
+			for (int i = 0; i < population.length; i++) {
+				population[i] = new Graph(graph);
+				population[i].shuffleColours();
+				population[i].calcFitness();
 			}
-		frame.setTitle("Genetic algorithm - CSP.      Current best graph:");
-		
-		/* Start the genetic algorithm thread. */
-		thread.start();
-		
-		/* Loop until algorithm thread is done. */
-		while (thread.getState() != Thread.State.TERMINATED) {
-			try {
-				Thread.sleep(Params.CHECK_FREQUENCY);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-			if(genAlgThread.hasChanged()) {
-				finalGraph = genAlgThread.getGraph();
-				frame.getContentPane().remove(drawGraph);
-				drawGraph.setGraph(finalGraph);
-				drawGraph.reloadColours();
-			}
-			drawGraph.setGeneration(genAlgThread.getGeneration());
-			drawGraph.setStagnation(genAlgThread.getStagnation());
+			
+			Collections.sort(Arrays.asList(population));
+			
+			Graph finalGraph = population[0];
+			
+			totalInitial += finalGraph.getFitness();
+			
+			/* Create new thread for algorithm on complete graph. */
+			GenAlgThread genAlgThread = new GenAlgThread(graph, population);
+			Thread thread;
+			thread = new Thread(genAlgThread);
+					
+			/* Display final constructed graph. */
+			JFrame frame = new JFrame();
+			int height = 80;
+			if(Params.DRAW_GRAPH)
+				height = 640;
+			else if(Params.DRAW_MATRIX)
+				height = 100 + Params.GRAPH_SIZE * 24;
+			DrawGraph drawGraph = new DrawGraph(finalGraph, 640, height);
+			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+			frame.setAlwaysOnTop(true);
 			frame.getContentPane().add(drawGraph);
+			frame.setSize(drawGraph.getSize());
 			drawGraph.repaint();
+			frame.setVisible(true);
+			
+			/* Wait WAIT_TIME seconds before starting algorithm. */
+			for (int i = 0; i < Params.WAIT_TIME; i++)
+				try {
+					frame.setTitle("Starting algorithm in " + (Params.WAIT_TIME-i) + " seconds...");
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			frame.setTitle("Genetic algorithm - CSP.      Current best graph:");
+			
+			/* Start the genetic algorithm thread. */
+			thread.start();
+			
+			/* Loop until algorithm thread is done. */
+			while (thread.getState() != Thread.State.TERMINATED) {
+				try {
+					Thread.sleep(Params.CHECK_FREQUENCY);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+				if(genAlgThread.hasChanged()) {
+					finalGraph = genAlgThread.getGraph();
+					frame.getContentPane().remove(drawGraph);
+					drawGraph.setGraph(finalGraph);
+					drawGraph.reloadColours();
+				}
+				drawGraph.setGeneration(genAlgThread.getGeneration());
+				drawGraph.setStagnation(genAlgThread.getStagnation());
+				frame.getContentPane().add(drawGraph);
+				drawGraph.repaint();
+			}
+			totalFitness += finalGraph.getFitness();
+			frame.dispose();
 		}
-		frame.dispose();
+		
+		System.out.println("--------------------------------------------");
+		int averageInitial = (int)(totalInitial / (double)cycles);
+		System.out.println("Average initial fitness: " + averageInitial);
+		int average = (int)(totalFitness / (double)cycles);
+		System.out.println("Average fitness through " + cycles + " cycles : " + average);
+		System.out.println("Average to initial ratio: " + (average / (double)averageInitial));
 	}
 
 	public static void main(String[] args) {
